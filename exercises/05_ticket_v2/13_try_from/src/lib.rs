@@ -1,11 +1,40 @@
 // TODO: Implement `TryFrom<String>` and `TryFrom<&str>` for `Status`.
 //  The parsing should be case-insensitive.
 
+use thiserror::Error;
+
 #[derive(Debug, PartialEq, Clone)]
 enum Status {
     ToDo,
     InProgress,
     Done,
+}
+
+#[derive(Debug, Error)]
+enum InvalidStatusError {
+    #[error("Invalid status: {status}. Valid options are ToDo, InProgress, and Done.")]
+    InvalidStatus { status: String }
+}
+
+impl TryFrom<&str> for Status {
+    type Error = InvalidStatusError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let status = value.to_lowercase();
+        match status.as_str() {
+            "todo" => Ok(Status::ToDo),
+            "inprogress" => Ok(Status::InProgress),
+            "done" => Ok(Status::Done),
+            _ => Err(InvalidStatusError::InvalidStatus { status: (status) })
+        }
+    }
+}
+
+impl TryFrom<String> for Status {
+    type Error = InvalidStatusError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
+    }
 }
 
 #[cfg(test)]
